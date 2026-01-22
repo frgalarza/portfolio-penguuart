@@ -3,11 +3,18 @@ import cloudinary from '../lib/cloudinary';
 import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
 
-const { resources } = await cloudinary.search
-  .expression('folder:Comisiones/*') 
-  .sort_by('public_id', 'desc')
-  .max_results(100)
-  .execute();
+// Consultamos Cloudinary
+let resources = [];
+try {
+  const result = await cloudinary.search
+    .expression('folder:Comisiones/*') 
+    .sort_by('public_id', 'desc')
+    .max_results(100)
+    .execute();
+  resources = result.resources;
+} catch (error) {
+  console.error("Error cargando imágenes de Cloudinary:", error);
+}
 
 interface Resource {
   secure_url: string;
@@ -15,13 +22,7 @@ interface Resource {
   format: string;
 }
 
-interface Emote {
-  url: string;
-  id: string;
-  format: string;
-}
-
-const todosLosEmotes = resources.map((image : Resource) => ({
+const todosLosEmotes = resources.map((image: Resource) => ({
   url: image.secure_url,
   id: image.public_id,
   format: image.format
@@ -29,127 +30,173 @@ const todosLosEmotes = resources.map((image : Resource) => ({
 ---
 
 <Layout>
-    <header class="flex flex-col items-center justify-center pt-16 pb-12 px-4">
-		<div class="flex items-center gap-4 md:gap-6">
-			<div class="w-20 h-20 md:w-28 md:h-28 rounded-full border-4 border-pink-400 p-1 bg-white shadow-md overflow-hidden animate-bounce-slow flex-shrink-0">
-				<Image
-					src="/penguu icono.png"
-					alt="PenguuArt Logo"
-					width={150}
-					height={150}
-					class="w-full h-full object-cover rounded-full"
-				/>
-			</div>
-			<h1 class="text-5xl md:text-7xl font-extrabold text-pink-500 tracking-tight drop-shadow-sm">
-				PenguuArt
-			</h1>
-		</div>
-		
-		<div class="mt-10 text-center animate-fade-in">
-			<p class="text-pink-400 font-medium text-lg italic tracking-wide">
-				Echá un vistazo a mis comisiones
-			</p>
-			<div class="mt-4 flex justify-center">
-				<div class="animate-bounce bg-pink-100 p-2 rounded-full">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-					</svg>
-				</div>
-			</div>
-		</div>
-	</header>
+  <main class="min-h-screen bg-[#fdf2f4] py-10 px-4 md:px-10">
+    <!-- El "Papel" -->
+    <div class="max-w-5xl mx-auto bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] rounded-sm min-h-screen flex flex-col relative overflow-hidden border-t-[12px] border-pink-400">
+      
+      <!-- Textura sutil de papel (opcional) -->
+      <div class="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]"></div>
 
-    <section class="max-w-6xl mx-auto p-6 bg-pink-50/30 rounded-3xl mb-20 shadow-inner">
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-            {todosLosEmotes.map((emote : Emote, index: number) => (
-                <button 
-                    class="emote-card aspect-square bg-white rounded-xl overflow-hidden border-2 border-pink-100 hover:border-pink-400 transition-all cursor-pointer group shadow-sm hover:shadow-md"
-                    data-url={emote.url}
-                >
-                    <img 
-                        src={emote.url} 
-                        alt={`Comisión ${index + 1}`}
-                        class="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform"
-                        loading="lazy"
-                    />
-                </button>
-            ))}
+      <!-- Margen decorativo lateral tipo hoja de dibujo -->
+      <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-50 border-r border-pink-100 hidden md:block"></div>
+
+      <!-- Header Llamativo -->
+      <header class="relative pt-16 pb-12 px-8 text-center border-b border-pink-50">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
+          <!-- Logo Circular Perfecto -->
+          <div class="relative group">
+            <div class="absolute -inset-1 bg-gradient-to-tr from-pink-400 to-rose-300 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+            <div class="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-pink-400 p-1 bg-white shadow-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+              <img
+                src="/penguu icono.png"
+                alt="PenguuArt Logo"
+                class="w-full h-full object-cover rounded-full aspect-square"
+              />
+            </div>
+          </div>
+
+          <div class="text-left">
+            <h1 class="text-6xl md:text-8xl font-black text-pink-500 tracking-tighter leading-none">
+              Penguu<span class="text-rose-400">Art</span>
+            </h1>
+            <p class="text-rose-300 font-bold uppercase tracking-[0.2em] text-sm mt-2 ml-1">
+              Ilustración & Emotes
+            </p>
+          </div>
         </div>
-    </section>
 
-    <dialog id="emote-modal" class="backdrop:bg-pink-900/40 backdrop:backdrop-blur-sm bg-transparent p-0 outline-none fixed inset-0 m-auto">
-		<div class="flex flex-col items-center justify-center w-screen h-screen p-4 pointer-events-none">
-			<div class="bg-white p-4 rounded-3xl border-4 border-pink-200 shadow-2xl pointer-events-auto max-w-lg w-full flex flex-col items-center">
-				<img id="modal-img" src="" alt="Emote en grande" class="max-h-[60vh] object-contain mb-6" />
-				<button id="close-modal" class="cursor-pointer bg-pink-500 hover:bg-pink-600 text-white px-10 py-3 rounded-full font-bold transition-all transform hover:scale-105 shadow-pink-200 shadow-lg">
-					Cerrar
-				</button>
-			</div>
-		</div>
-	</dialog>
+        <!-- Call to Action / Scroll Invite -->
+        <div class="max-w-md mx-auto mt-12 mb-4">
+            <h2 class="text-xl md:text-2xl font-medium text-gray-700 leading-relaxed">
+                ¡Explorá mi colección de <span class="text-pink-500 font-bold underline decoration-pink-200 underline-offset-4">comisiones</span>!
+            </h2>
+            <div class="mt-6 flex flex-col items-center gap-2 text-pink-300">
+                <span class="text-xs font-bold uppercase tracking-widest animate-pulse">Scrolleá para ver</span>
+                <div class="w-8 h-12 border-2 border-pink-200 rounded-full flex justify-center p-1">
+                    <div class="w-1 h-3 bg-pink-400 rounded-full animate-scroll-dot"></div>
+                </div>
+            </div>
+        </div>
+      </header>
 
-	<div class="fixed right-6 bottom-10 flex flex-col gap-4 z-50">
-    <a href="https://www.instagram.com/penguu.art/?hl=es" class="bg-white p-3 rounded-full shadow-lg border-2 border-pink-100 text-pink-500 hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-    </a>
-    <a href="#" class="bg-white p-3 rounded-full shadow-lg border-2 border-pink-100 text-pink-500 hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-    </a>
-</div>
+      <!-- Galería de Emotes -->
+      <section class="flex-1 p-8 md:p-12">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-4 md:gap-6">
+          {todosLosEmotes.map((emote, index) => (
+            <button 
+              class="emote-trigger relative aspect-square bg-pink-50/50 rounded-2xl p-2 transition-all duration-300 hover:bg-pink-100 hover:shadow-lg hover:-translate-y-1 active:scale-95 group border border-transparent hover:border-pink-200"
+              data-url={emote.url}
+            >
+              <img 
+                src={emote.url} 
+                alt={`Emote comisionado ${index + 1}`}
+                class="w-full h-full object-contain drop-shadow-sm group-hover:drop-shadow-md transition-all"
+                loading="lazy"
+              />
+              <!-- Pequeño detalle decorativo tipo sticker -->
+              <div class="absolute bottom-1 right-1 w-2 h-2 bg-pink-200 rounded-full scale-0 group-hover:scale-100 transition-transform"></div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <!-- Footer de la hoja -->
+      <footer class="p-8 text-center border-t border-pink-50 bg-pink-50/20">
+        <p class="text-pink-400 font-medium tracking-wide">© 2026 PenguuArt • Creado con amor 🎀</p>
+      </footer>
+    </div>
+
+    <!-- Barra Flotante de Redes (Estilo Rosa Papel) -->
+    <nav class="fixed left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+        <a href="#" class="w-12 h-12 bg-white rounded-full shadow-lg border-2 border-pink-200 flex items-center justify-center text-pink-500 hover:bg-pink-500 hover:text-white hover:scale-110 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+        </a>
+        <a href="#" class="w-12 h-12 bg-white rounded-full shadow-lg border-2 border-pink-200 flex items-center justify-center text-pink-500 hover:bg-pink-500 hover:text-white hover:scale-110 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        </a>
+    </nav>
+  </main>
+
+  <!-- Modal Lightbox Centrado -->
+  <dialog id="emote-modal" class="p-0 bg-transparent outline-none fixed inset-0 m-auto backdrop:bg-pink-900/60 backdrop:backdrop-blur-sm">
+    <div class="flex flex-col items-center justify-center w-screen h-screen p-6 pointer-events-none">
+      <div class="bg-white p-8 rounded-[2rem] border-[6px] border-pink-100 shadow-2xl pointer-events-auto max-w-sm w-full flex flex-col items-center transform transition-all animate-modal-pop">
+        <div class="relative w-full aspect-square bg-pink-50 rounded-2xl flex items-center justify-center mb-8 overflow-hidden">
+            <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/pinstriped-suit.png')]"></div>
+            <img id="modal-img" src="" alt="Emote ampliado" class="relative z-10 w-4/5 h-4/5 object-contain drop-shadow-xl" />
+        </div>
+        
+        <button id="close-modal" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-lg shadow-pink-200">
+          CERRAR
+        </button>
+      </div>
+    </div>
+  </dialog>
 </Layout>
 
-<style>
-    /* Una animación suave para el bounce del logo */
-    @keyframes bounce-slow {
-        0%, 100% { transform: translateY(-5%); }
-        50% { transform: translateY(0); }
-    }
-    .animate-bounce-slow {
-        animation: bounce-slow 3s infinite;
-    }
+<style is:global>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
-    /* Estilos para el Modal */
-    dialog[open] {
-        animation: zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
+  body {
+    font-family: 'Inter', sans-serif;
+  }
 
-    @keyframes zoom {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
+  /* Animación del punto de scroll */
+  @keyframes scroll-dot {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(20px); opacity: 0; }
+  }
+  .animate-scroll-dot {
+    animation: scroll-dot 1.5s infinite;
+  }
 
-	#emote-modal {
-        max-width: 100vw;
-        max-height: 100vh;
-        border: none;
-    }
+  /* Animación de pop del modal */
+  @keyframes modal-pop {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .animate-modal-pop {
+    animation: modal-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
 
-    #emote-modal::backdrop {
-        background: rgba(255, 182, 193, 0.4); /* Un rosa traslúcido */
-        backdrop-filter: blur(4px);
-    }
+  /* Ajustes del Dialog nativo */
+  #emote-modal {
+    border: none;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+
+  /* Quitar scroll del body cuando el modal está abierto */
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
 </style>
 
 <script>
-    const modal = document.getElementById('emote-modal') as HTMLDialogElement;
-    const modalImg = document.getElementById('modal-img') as HTMLImageElement;
-    const closeBtn = document.getElementById('close-modal');
-    const cards = document.querySelectorAll('.emote-card');
+  const modal = document.getElementById('emote-modal') as HTMLDialogElement;
+  const modalImg = document.getElementById('modal-img') as HTMLImageElement;
+  const closeBtn = document.getElementById('close-modal');
+  const triggers = document.querySelectorAll('.emote-trigger');
 
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            const url = card.getAttribute('data-url');
-            if (url) {
-                modalImg.src = url;
-                modal.showModal();
-            }
-        });
+  triggers.forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const url = trigger.getAttribute('data-url');
+      if (url) {
+        modalImg.src = url;
+        modal.showModal();
+      }
     });
+  });
 
-    // Cerrar al hacer clic fuera del contenido o en el botón
-    modal?.addEventListener('click', (e) => {
-        if (e.target === modal) modal.close();
-    });
-    
-    closeBtn?.addEventListener('click', () => modal.close());
+  // Cerrar al hacer clic en el botón
+  closeBtn?.addEventListener('click', () => modal.close());
+
+  // Cerrar al hacer clic fuera del contenido (en el backdrop)
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.close();
+    }
+  });
+
+  // Cerrar con Escape ya viene por defecto en <dialog>
 </script>
